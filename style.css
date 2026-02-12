@@ -6,15 +6,33 @@
 body {
     margin: 0;
     padding: 0;
-    background: #f4f4f4;
-    color: #333;
+    background: var(--bg-color);
+    color: var(--text-color);
+}
+
+/* default light theme variables */
+:root {
+    --bg-color: #f4f4f4;
+    --text-color: #333;
+    --container-bg: #fff;
+    --button-bg: #007bff;
+    --button-hover: #0056b3;
+}
+
+/* dark theme overrides */
+body.dark {
+    --bg-color: #121212;
+    --text-color: #eee;
+    --container-bg: #1e1e1e;
+    --button-bg: #0066cc;
+    --button-hover: #004a99;
 }
 .container {
     max-width: 600px;
     margin: 2rem auto;
-    background: #fff;
+    background: var(--container-bg);
     padding: 1.5rem;
-    border-radius: 8px;
+    border-radius: 12px; /* round edges */
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 h1 {
@@ -53,14 +71,14 @@ h1 {
 button {
     padding: 0.6rem 1.2rem;
     border: none;
-    background: #007bff;
+    background: var(--button-bg);
     color: #fff;
     font-size: 1rem;
-    border-radius: 4px;
+    border-radius: 6px;
     cursor: pointer;
 }
 button:hover {
-    background: #0056b3;
+    background: var(--button-hover);
 }
 #class-table {
     width: 100%;

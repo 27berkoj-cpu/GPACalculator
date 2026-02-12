@@ -9,19 +9,29 @@
 <body>
     <div class="container">
         <h1>GPA Calculator</h1>
+        <div class="mode-switch">
+            <label><input type="checkbox" id="dark-toggle" /> Dark mode</label>
+        </div>
         <form id="class-form">
             <div class="form-row">
-                <label for="grade">Grade (%) or 4.0</label>
-                <input type="number" step="0.01" id="grade" required />
+                <label for="classname">Class Name</label>
+                <input type="text" id="classname" required />
             </div>
             <div class="form-row">
-                <label for="credit">Credit Hours</label>
+                <label for="grade">Grade (percentage)</label>
+                <input type="number" step="0.01" id="grade" min="0" max="100" required />
+            </div>
+            <div class="form-row">
+                <label for="credit">Credits</label>
                 <input type="number" step="0.25" id="credit" required />
             </div>
-            <div class="form-row radio-group">
-                <label>Type</label>
-                <label><input type="radio" name="weight" value="unweighted" checked /> Unweighted</label>
-                <label><input type="radio" name="weight" value="weighted" /> Weighted (AP/IB)</label>
+            <div class="form-row">
+                <label for="type">Course Type</label>
+                <select id="type">
+                    <option value="regular">Regular</option>
+                    <option value="honors">Honors/IB SL</option>
+                    <option value="ap">AP/IB HL/CCP</option>
+                </select>
             </div>
             <div class="buttons">
                 <button type="button" id="add-class">Add Class</button>
@@ -33,9 +43,12 @@
             <thead>
                 <tr>
                     <th>#</th>
-                    <th>Grade</th>
-                    <th>Credit</th>
-                    <th>Weighted</th>
+                    <th>Class</th>
+                    <th>Grade (%)</th>
+                    <th>Letter</th>
+                    <th>Points</th>
+                    <th>Credits</th>
+                    <th>Type</th>
                 </tr>
             </thead>
             <tbody></tbody>
@@ -44,6 +57,7 @@
         <div class="result">
             <button id="calculate">Calculate GPA</button>
             <p id="gpa-output"></p>
+            <p id="unweighted-output"></p>
         </div>
     </div>
 
