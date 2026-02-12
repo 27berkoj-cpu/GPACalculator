@@ -91,6 +91,13 @@ button:hover {
     padding: 0.5rem;
     text-align: center;
 }
+
+/* ensure legible text in dark theme */
+body.dark #class-table th,
+body.dark #class-table td {
+    color: #000;
+    border-color: #555;
+}
 #class-table tr.highest {
     background: #d4edda;
 }

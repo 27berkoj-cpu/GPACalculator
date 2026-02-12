@@ -10,7 +10,7 @@
     <div class="container">
         <h1>GPA Calculator</h1>
         <div class="mode-switch">
-            <label><input type="checkbox" id="dark-toggle" /> Dark mode</label>
+            <label><input type="checkbox" id="dark-toggle" aria-label="Toggle dark mode" /> Dark mode</label>
         </div>
         <form id="class-form">
             <div class="form-row">
@@ -34,12 +34,12 @@
                 </select>
             </div>
             <div class="buttons">
-                <button type="button" id="add-class">Add Class</button>
-                <button type="button" id="clear-all">Clear All</button>
+                <button type="button" id="add-class" aria-label="Add class entry">Add Class</button>
+                <button type="button" id="clear-all" aria-label="Clear all classes">Clear All</button>
             </div>
         </form>
 
-        <table id="class-table">
+        <table id="class-table" aria-label="List of entered classes">
             <thead>
                 <tr>
                     <th>#</th>
@@ -49,13 +49,15 @@
                     <th>Points</th>
                     <th>Credits</th>
                     <th>Type</th>
+                    <th>Delete</th>
                 </tr>
             </thead>
             <tbody></tbody>
         </table>
 
         <div class="result">
-            <button id="calculate">Calculate GPA</button>
+            <button id="calculate" disabled aria-label="Calculate GPA">Calculate GPA</button>
+            <button id="export" type="button" aria-label="Export classes as CSV">Export CSV</button>
             <p id="gpa-output"></p>
             <p id="unweighted-output"></p>
         </div>

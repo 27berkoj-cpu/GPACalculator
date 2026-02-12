@@ -1,10 +1,36 @@
-// manage classes array
+// manage classes array (persisted to localStorage)
 const classes = [];
 
-// helper: map percentage to letter grade
-function letterFromPercent(pct) {
+// save current state (classes + dark mode) to localStorage
+function saveState() {
+    localStorage.setItem('gpa_classes', JSON.stringify(classes));
+    const dark = document.body.classList.contains('dark');
+    localStorage.setItem('gpa_dark', dark ? '1' : '0');
+}
 
-// boundaries for percent to letter (standard breaks)
+// load state from localStorage and apply
+function loadState() {
+    const stored = localStorage.getItem('gpa_classes');
+    if (stored) {
+        try {
+            const arr = JSON.parse(stored);
+            if (Array.isArray(arr)) {
+                arr.forEach(item => classes.push(item));
+            }
+        } catch (e) {
+            console.warn('failed to parse classes from storage', e);
+        }
+    }
+    const dark = localStorage.getItem('gpa_dark');
+    if (dark === '1') {
+        document.body.classList.add('dark');
+        const toggle = document.getElementById('dark-toggle');
+        if (toggle) toggle.checked = true;
+    }
+}
+
+// helper: map percentage to letter grade
+// boundaries follow typical high-school percentages
 function letterFromPercent(pct) {
     if (pct >= 97) return 'A+';
     if (pct >= 93) return 'A';
@@ -51,12 +77,13 @@ function pointsFor(letter, type) {
     return table[letter] ?? 0;
 }
 
+// refresh the table UI from the classes array
 function updateTable() {
     const tbody = document.querySelector('#class-table tbody');
     tbody.innerHTML = '';
     if (classes.length === 0) return;
 
-    // compute highest/lowest based on points (scale)
+    // compute highest/lowest based on points (scale) for highlighting
     let max = -Infinity, min = Infinity;
     classes.forEach(c => {
         const val = c.points;
@@ -77,9 +104,18 @@ function updateTable() {
             <td>${c.points.toFixed(4)}</td>
             <td>${c.credit}</td>
             <td>${typeLabel}</td>
+            <td><button class="delete-btn" aria-label="Delete class ${c.name}" data-index="${idx}">✖</button></td>
         `;
         tbody.appendChild(tr);
     });
+    // attach click handlers to delete buttons (delegation could also work)
+    tbody.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const idx = parseInt(btn.getAttribute('data-index'), 10);
+            removeClass(idx);
+        });
+    });
+    updateCalculateButton();
 }
 
 function addClass() {
@@ -106,6 +142,7 @@ function addClass() {
         credit: credit,
         type: type
     });
+    saveState();
 
     nameInput.value = '';
     gradeInput.value = '';
@@ -115,6 +152,8 @@ function addClass() {
     updateTable();
 }
 
+
+// compute and display weighted + unweighted GPA
 function calculateGPA() {
     // ensure there's at least one class to compute
     if (classes.length === 0) {
@@ -141,16 +180,75 @@ function calculateGPA() {
     document.getElementById('unweighted-output').textContent = `Unweighted GPA: ${gpaUnw.toFixed(3)}`;
 }
 
+// remove a single class by index, called by delete buttons
+function removeClass(index) {
+    if (index >= 0 && index < classes.length) {
+        classes.splice(index, 1);
+        saveState();
+        updateTable();
+        document.getElementById('gpa-output').textContent = '';
+        document.getElementById('unweighted-output').textContent = '';
+    }
+}
+
+// export the class list as CSV and prompt download
+function exportCSV() {
+    if (classes.length === 0) {
+        alert('No classes to export.');
+        return;
+    }
+    const header = ['Class','Grade %','Letter','Points','Credits','Type'];
+    const rows = classes.map(c => [c.name, c.percent, c.letter, c.points, c.credit, c.type]);
+    const lines = [header.join(','), ...rows.map(r => r.join(','))];
+    const blob = new Blob([lines.join('\n')], {type:'text/csv'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'gpa-classes.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+// enable/disable calculate button based on data presence
+function updateCalculateButton() {
+    const btn = document.getElementById('calculate');
+    btn.disabled = classes.length === 0;
+}
+
+
+// remove all classes and reset display
 function clearAll() {
     classes.length = 0;
     document.getElementById('gpa-output').textContent = '';
+    document.getElementById('unweighted-output').textContent = '';
+    saveState();
     updateTable();
 }
 
+// assign listeners and restore previous state
 function init() {
     document.getElementById('add-class').addEventListener('click', addClass);
     document.getElementById('calculate').addEventListener('click', calculateGPA);
     document.getElementById('clear-all').addEventListener('click', clearAll);
+    document.getElementById('export').addEventListener('click', exportCSV);
+
+    // dark mode toggle logic
+    const toggle = document.getElementById('dark-toggle');
+    toggle.addEventListener('change', () => {
+        document.body.classList.toggle('dark', toggle.checked);
+        saveState();
+    });
+
+    // load saved classes and theme
+    loadState();
+    updateTable();
+
+    // if no preference stored, honor system setting
+    if (!localStorage.getItem('gpa_dark')) {
+        const prefers = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.body.classList.toggle('dark', prefers);
+        toggle.checked = prefers;
+    }
 }
 
 window.addEventListener('DOMContentLoaded', init);
