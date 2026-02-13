@@ -132,7 +132,7 @@ body.dark #class-table td {
 }
 /* when many classes are present highlight outputs more strongly */
 .result.high-classes p {
-    color: #000;
+    color: var(--text-color);
 }
 #gpa-output {
     margin-top: 0.5rem;

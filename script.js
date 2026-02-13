@@ -5,6 +5,12 @@ let currentSemester = null;
 // internal storage object: { semesterName: [class,...], ... }
 let semesters = {};
 
+// sample preview state (not persisted into semesters)
+let sampleActive = false;
+let sampleBackup = null;
+let sampleIndex = 0; // which fixed sample to show next
+
+
 // save semesters object and dark mode to localStorage
 function saveState() {
     localStorage.setItem('gpa_semesters', JSON.stringify(semesters));
@@ -86,6 +92,71 @@ const gradeTable = {
 function pointsFor(letter, type) {
     const table = gradeTable[type] || gradeTable.regular;
     return table[letter] ?? 0;
+}
+
+// generate a sample set containing each course type exactly once
+// fixed sample sets (each set contains one of each course type)
+const sampleSets = [
+    // User-provided six-course example (uses default percent for letters)
+    [
+        { name: 'Honors English 1', percent: 81, letter: 'B-', points: pointsFor('B-', 'honors'), credit: 0.5, type: 'honors' },
+        { name: 'Honors Biology', percent: 85, letter: 'B',  points: pointsFor('B',  'honors'), credit: 0.5, type: 'honors' },
+        { name: 'AP World History', percent: 88, letter: 'B+', points: pointsFor('B+', 'ap'), credit: 0.5, type: 'ap' },
+        { name: 'CCP Intro to Psychology', percent: 85, letter: 'B', points: pointsFor('B', 'ccp'), credit: 1.0, type: 'ccp' },
+        { name: 'Financial Literacy', percent: 95, letter: 'A', points: pointsFor('A', 'regular'), credit: 0.5, type: 'regular' },
+        { name: 'PE', percent: 91, letter: 'A-', points: pointsFor('A-', 'regular'), credit: 0.25, type: 'regular' }
+    ],
+    // Additional fixed six-course examples (non-random)
+    [
+        { name: 'Algebra I', percent: 92, letter: 'A-', points: pointsFor('A-', 'regular'), credit: 1, type: 'regular' },
+        { name: 'Honors Chemistry', percent: 88, letter: 'B+', points: pointsFor('B+', 'honors'), credit: 1, type: 'honors' },
+        { name: 'AP Biology', percent: 94, letter: 'A', points: pointsFor('A', 'ap'), credit: 1, type: 'ap' },
+        { name: 'CCP College Writing', percent: 90, letter: 'A-', points: pointsFor('A-', 'ccp'), credit: 1, type: 'ccp' },
+        { name: 'World Geography', percent: 84, letter: 'B', points: pointsFor('B', 'regular'), credit: 0.5, type: 'regular' },
+        { name: 'Health', percent: 79, letter: 'C+', points: pointsFor('C+', 'regular'), credit: 0.5, type: 'regular' }
+    ],
+    [
+        { name: 'English 9', percent: 85, letter: 'B', points: pointsFor('B', 'regular'), credit: 1, type: 'regular' },
+        { name: 'Honors World History', percent: 91, letter: 'A-', points: pointsFor('A-', 'honors'), credit: 1, type: 'honors' },
+        { name: 'AP Calculus', percent: 96, letter: 'A+', points: pointsFor('A+', 'ap'), credit: 1, type: 'ap' },
+        { name: 'CCP Intro to Psychology', percent: 89, letter: 'B+', points: pointsFor('B+', 'ccp'), credit: 1, type: 'ccp' },
+        { name: 'Geometry', percent: 78, letter: 'C+', points: pointsFor('C+', 'regular'), credit: 1, type: 'regular' },
+        { name: 'PE Fitness', percent: 93, letter: 'A', points: pointsFor('A', 'regular'), credit: 0.5, type: 'regular' }
+    ]
+];
+
+// toggle showing a fixed sample set; sequence: show -> hide -> show next -> hide -> ...
+function toggleSample() {
+    const btn = document.getElementById('sample-btn');
+    const addBtn = document.getElementById('add-class');
+    const exportBtn = document.getElementById('export');
+
+    if (sampleActive) {
+        // hide sample: restore backup and advance to next sample index
+        classes.length = 0;
+        if (Array.isArray(sampleBackup)) sampleBackup.forEach(c => classes.push(c));
+        sampleBackup = null;
+        sampleActive = false;
+        sampleIndex = (sampleIndex + 1) % sampleSets.length;
+        btn.textContent = 'Show Sample';
+        addBtn.disabled = false;
+        exportBtn.disabled = false;
+        // restore persisted semester data as well
+        if (currentSemester) semesters[currentSemester] = classes.slice();
+        saveState();
+        updateTable();
+    } else {
+        // show sample: backup current classes then replace with fixed set
+        sampleBackup = classes.slice();
+        const sample = sampleSets[sampleIndex];
+        classes.length = 0;
+        sample.forEach(c => classes.push(Object.assign({}, c)));
+        sampleActive = true;
+        btn.textContent = 'Hide Sample';
+        addBtn.disabled = true;
+        exportBtn.disabled = true;
+        updateTable();
+    }
 }
 
 // refresh the table UI from the classes array
@@ -187,6 +258,10 @@ function calculateGPA() {
         totalPointsUnw += ptsUnw * c.credit;
     });
 
+    if (!isFinite(totalCredits) || totalCredits <= 0) {
+        alert('Total credits must be greater than zero to calculate GPA.');
+        return;
+    }
     const gpa = totalPoints / totalCredits;
     const gpaUnw = totalPointsUnw / totalCredits;
     const out = document.getElementById('gpa-output');
@@ -207,6 +282,8 @@ function calculateGPA() {
 function removeClass(index) {
     if (index >= 0 && index < classes.length) {
         classes.splice(index, 1);
+        // persist the updated classes array to the current semester
+        if (currentSemester) semesters[currentSemester] = classes.slice();
         saveState();
         updateTable();
         document.getElementById('gpa-output').textContent = '';
@@ -237,9 +314,15 @@ function exportCSV() {
         alert('No classes to export.');
         return;
     }
+    // helper to escape fields for CSV
+    const escape = (v) => {
+        const s = String(v ?? '');
+        if (/[",\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
+        return s;
+    };
     const header = ['Class','Grade %','Letter','Points','Credits','Type'];
     const rows = classes.map(c => [c.name, c.percent, c.letter, c.points, c.credit, c.type]);
-    const lines = [header.join(','), ...rows.map(r => r.join(','))];
+    const lines = [header.map(escape).join(','), ...rows.map(r => r.map(escape).join(','))];
     const blob = new Blob([lines.join('\n')], {type:'text/csv'});
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -258,10 +341,24 @@ function updateCalculateButton() {
 
 // remove all classes and reset display
 function clearAll() {
+    // if a sample is showing, hide it and reset sample state so the button shows "Show Sample"
+    if (sampleActive) {
+        const sampleBtn = document.getElementById('sample-btn');
+        if (sampleBtn) sampleBtn.textContent = 'Show Sample';
+        sampleActive = false;
+        sampleBackup = null;
+        const addBtn = document.getElementById('add-class');
+        const exportBtn = document.getElementById('export');
+        if (addBtn) addBtn.disabled = false;
+        if (exportBtn) exportBtn.disabled = false;
+    }
+
     classes.length = 0;
-    semesters[currentSemester] = [];
-    document.getElementById('gpa-output').textContent = '';
-    document.getElementById('unweighted-output').textContent = '';
+    if (currentSemester) semesters[currentSemester] = [];
+    const gpaOut = document.getElementById('gpa-output');
+    const unwOut = document.getElementById('unweighted-output');
+    if (gpaOut) gpaOut.textContent = '';
+    if (unwOut) unwOut.textContent = '';
     saveState();
     updateTable();
 }
@@ -315,6 +412,9 @@ function init() {
     // semester controls
     document.getElementById('semester').addEventListener('change', switchSemester);
     document.getElementById('new-semester').addEventListener('click', createSemester);
+    // sample preview control
+    const sampleBtn = document.getElementById('sample-btn');
+    if (sampleBtn) sampleBtn.addEventListener('click', toggleSample);
 
     // dark mode toggle logic
     const toggle = document.getElementById('dark-toggle');
@@ -325,11 +425,11 @@ function init() {
 
     // load saved semesters and theme
     loadState();
-    populateSemesterList();
-    // if none exist, create default
+    // if none exist, create default then populate the selector
     if (Object.keys(semesters).length === 0) {
         semesters['Default'] = [];
     }
+    populateSemesterList();
     // select first semester
     currentSemester = Object.keys(semesters)[0];
     loadCurrentSemester();
