@@ -12,6 +12,11 @@
         <div class="mode-switch">
             <label><input type="checkbox" id="dark-toggle" aria-label="Toggle dark mode" /> Dark mode</label>
         </div>
+        <div class="semester-select">
+            <label for="semester">Semester/Year</label>
+            <select id="semester"></select>
+            <button type="button" id="new-semester">New…</button>
+        </div>
         <form id="class-form">
             <div class="form-row">
                 <label for="classname">Class Name</label>
@@ -30,7 +35,8 @@
                 <select id="type">
                     <option value="regular">Regular</option>
                     <option value="honors">Honors/IB SL</option>
-                    <option value="ap">AP/IB HL/CCP</option>
+                    <option value="ap">AP/IB HL</option>
+                    <option value="ccp">CCP (College Credit Plus / Dual Enrollment)</option>
                 </select>
             </div>
             <div class="buttons">
@@ -60,6 +66,10 @@
             <button id="export" type="button" aria-label="Export classes as CSV">Export CSV</button>
             <p id="gpa-output"></p>
             <p id="unweighted-output"></p>
+            <div id="scale-info">
+                <h3>Conversion tables</h3>
+                <pre id="percentage-to-letter"></pre>
+            </div>
         </div>
     </div>
 

@@ -22,7 +22,7 @@ body {
 /* dark theme overrides */
 body.dark {
     --bg-color: #121212;
-    --text-color: #eee;
+    --text-color: #fff; /* make all text white in dark mode */
     --container-bg: #1e1e1e;
     --button-bg: #0066cc;
     --button-hover: #004a99;
@@ -39,7 +39,17 @@ h1 {
     text-align: center;
     margin-bottom: 1rem;
 }
-.form-row {
+.semester-select {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+.semester-select select {
+    flex: 1;
+    padding: 0.4rem;
+    font-size: 1rem;
+}.form-row {
     display: flex;
     flex-direction: column;
     margin-bottom: 0.75rem;
@@ -92,10 +102,10 @@ button:hover {
     text-align: center;
 }
 
-/* ensure legible text in dark theme */
+/* ensure legible text in dark theme for table headers and cells */
 body.dark #class-table th,
 body.dark #class-table td {
-    color: #000;
+    color: var(--text-color);
     border-color: #555;
 }
 #class-table tr.highest {
@@ -106,6 +116,13 @@ body.dark #class-table td {
 }
 .result {
     text-align: center;
+}
+.result p {
+    color: var(--text-color);
+}
+/* when many classes are present highlight outputs more strongly */
+.result.high-classes p {
+    color: #000;
 }
 #gpa-output {
     margin-top: 0.5rem;
