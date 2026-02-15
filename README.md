@@ -15,7 +15,6 @@ A simple web application that helps high school students calculate their GPA per
 - Manage multiple semesters/years and switch between them.
 - Dark mode with persistent preference.
 - Smooth fade-in animation on load.
-- Export class list as CSV.
 - Data saved to `localStorage` and restored on reload.
 
 ## Usage
@@ -25,8 +24,7 @@ A simple web application that helps high school students calculate their GPA per
 3. Fill in class information and click **Add Class**.
 4. Once all classes are added, click **Calculate GPA** to see results.
 5. Results will display weighted and unweighted GPAs and percentage-to-letter conversion.
-6. Use **Export CSV** to save the current list.
-7. Toggle dark mode using the checkbox.
+6. Toggle dark mode using the checkbox.
 8. Clear all entries for the current semester with **Clear All**.
 
 ## Development

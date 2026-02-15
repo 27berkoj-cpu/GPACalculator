@@ -129,7 +129,6 @@ const sampleSets = [
 function toggleSample() {
     const btn = document.getElementById('sample-btn');
     const addBtn = document.getElementById('add-class');
-    const exportBtn = document.getElementById('export');
 
     if (sampleActive) {
         // hide sample: restore backup and advance to next sample index
@@ -140,7 +139,6 @@ function toggleSample() {
         sampleIndex = (sampleIndex + 1) % sampleSets.length;
         btn.textContent = 'Show Sample';
         addBtn.disabled = false;
-        exportBtn.disabled = false;
         // restore persisted semester data as well
         if (currentSemester) semesters[currentSemester] = classes.slice();
         saveState();
@@ -154,7 +152,6 @@ function toggleSample() {
         sampleActive = true;
         btn.textContent = 'Hide Sample';
         addBtn.disabled = true;
-        exportBtn.disabled = true;
         updateTable();
     }
 }
@@ -308,29 +305,7 @@ function populateScaleInfo() {
 
 }
 
-// export the class list as CSV and prompt download
-function exportCSV() {
-    if (classes.length === 0) {
-        alert('No classes to export.');
-        return;
-    }
-    // helper to escape fields for CSV
-    const escape = (v) => {
-        const s = String(v ?? '');
-        if (/[",\n]/.test(s)) return '"' + s.replace(/"/g, '""') + '"';
-        return s;
-    };
-    const header = ['Class','Grade %','Letter','Points','Credits','Type'];
-    const rows = classes.map(c => [c.name, c.percent, c.letter, c.points, c.credit, c.type]);
-    const lines = [header.map(escape).join(','), ...rows.map(r => r.map(escape).join(','))];
-    const blob = new Blob([lines.join('\n')], {type:'text/csv'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'gpa-classes.csv';
-    a.click();
-    URL.revokeObjectURL(url);
-}
+
 
 // enable/disable calculate button based on data presence
 function updateCalculateButton() {
@@ -348,9 +323,7 @@ function clearAll() {
         sampleActive = false;
         sampleBackup = null;
         const addBtn = document.getElementById('add-class');
-        const exportBtn = document.getElementById('export');
         if (addBtn) addBtn.disabled = false;
-        if (exportBtn) exportBtn.disabled = false;
     }
 
     classes.length = 0;
@@ -407,7 +380,6 @@ function init() {
     document.getElementById('add-class').addEventListener('click', addClass);
     document.getElementById('calculate').addEventListener('click', calculateGPA);
     document.getElementById('clear-all').addEventListener('click', clearAll);
-    document.getElementById('export').addEventListener('click', exportCSV);
 
     // semester controls
     document.getElementById('semester').addEventListener('change', switchSemester);
