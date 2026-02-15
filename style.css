@@ -139,6 +139,14 @@ body.dark #class-table td {
     font-size: 1.2rem;
     font-weight: bold;
 }
+/* make the illustrative image responsive */
+.calculator-image {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 1rem auto;
+}
+
 @media (max-width: 480px) {
     .form-row {
         flex-direction: column;
@@ -149,5 +157,8 @@ body.dark #class-table td {
     }
     .buttons {
         flex-direction: column;
+    }
+    .calculator-image {
+        width: 80%;
     }
 }

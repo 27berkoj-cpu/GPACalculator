@@ -10,6 +10,10 @@ let sampleActive = false;
 let sampleBackup = null;
 let sampleIndex = 0; // which fixed sample to show next
 
+// undo/redo history stacks (store snapshots of `classes`)
+const history = [];
+const redoStack = [];
+
 
 // save semesters object and dark mode to localStorage
 function saveState() {
@@ -94,6 +98,53 @@ function pointsFor(letter, type) {
     return table[letter] ?? 0;
 }
 
+// ---- history / undo-redo helpers --------------------------------
+function updateHistoryButtons() {
+    const undoBtn = document.getElementById('undo');
+    const redoBtn = document.getElementById('redo');
+    if (undoBtn) undoBtn.disabled = history.length === 0 || sampleActive;
+    if (redoBtn) redoBtn.disabled = redoStack.length === 0 || sampleActive;
+}
+
+function pushHistory() {
+    // snapshot current classes
+    history.push(classes.map(c => ({ ...c }))); 
+    // clear redo stack when new action occurs
+    redoStack.length = 0;
+    updateHistoryButtons();
+}
+
+function undo() {
+    if (history.length === 0) return;
+    // save current for redo
+    redoStack.push(classes.map(c => ({ ...c })));
+    const prev = history.pop();
+    classes.length = 0;
+    prev.forEach(c => classes.push({ ...c }));
+    if (currentSemester) semesters[currentSemester] = classes.slice();
+    saveState();
+    updateTable();
+    updateHistoryButtons();
+}
+
+function redo() {
+    if (redoStack.length === 0) return;
+    history.push(classes.map(c => ({ ...c })));
+    const next = redoStack.pop();
+    classes.length = 0;
+    next.forEach(c => classes.push({ ...c }));
+    if (currentSemester) semesters[currentSemester] = classes.slice();
+    saveState();
+    updateTable();
+    updateHistoryButtons();
+}
+
+function clearHistory() {
+    history.length = 0;
+    redoStack.length = 0;
+    updateHistoryButtons();
+}
+
 // generate a sample set containing each course type exactly once
 // fixed sample sets (each set contains one of each course type)
 const sampleSets = [
@@ -139,6 +190,7 @@ function toggleSample() {
         sampleIndex = (sampleIndex + 1) % sampleSets.length;
         btn.textContent = 'Show Sample';
         addBtn.disabled = false;
+        clearHistory();
         // restore persisted semester data as well
         if (currentSemester) semesters[currentSemester] = classes.slice();
         saveState();
@@ -152,6 +204,7 @@ function toggleSample() {
         sampleActive = true;
         btn.textContent = 'Hide Sample';
         addBtn.disabled = true;
+        clearHistory();
         updateTable();
     }
 }
@@ -199,6 +252,8 @@ function updateTable() {
 
 function addClass() {
     if (!currentSemester) return; // safety
+    // record previous state for undo
+    pushHistory();
     const nameInput = document.getElementById('classname');
     const gradeInput = document.getElementById('grade');
     const creditInput = document.getElementById('credit');
@@ -278,6 +333,8 @@ function calculateGPA() {
 // remove a single class by index, called by delete buttons
 function removeClass(index) {
     if (index >= 0 && index < classes.length) {
+        // save state for undo before removal
+        pushHistory();
         classes.splice(index, 1);
         // persist the updated classes array to the current semester
         if (currentSemester) semesters[currentSemester] = classes.slice();
@@ -324,8 +381,10 @@ function clearAll() {
         sampleBackup = null;
         const addBtn = document.getElementById('add-class');
         if (addBtn) addBtn.disabled = false;
+        clearHistory();
     }
 
+    if (classes.length > 0) pushHistory();
     classes.length = 0;
     if (currentSemester) semesters[currentSemester] = [];
     const gpaOut = document.getElementById('gpa-output');
@@ -373,6 +432,7 @@ function loadCurrentSemester() {
         semesters[currentSemester].forEach(c => classes.push(c));
     }
     updateTable();
+    clearHistory();
 }
 
 // assign listeners and restore previous state
@@ -380,6 +440,11 @@ function init() {
     document.getElementById('add-class').addEventListener('click', addClass);
     document.getElementById('calculate').addEventListener('click', calculateGPA);
     document.getElementById('clear-all').addEventListener('click', clearAll);
+    // undo/redo listeners
+    const undoBtn = document.getElementById('undo');
+    const redoBtn = document.getElementById('redo');
+    if (undoBtn) undoBtn.addEventListener('click', undo);
+    if (redoBtn) redoBtn.addEventListener('click', redo);
 
     // semester controls
     document.getElementById('semester').addEventListener('change', switchSemester);

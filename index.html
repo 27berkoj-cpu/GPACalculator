@@ -5,13 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>High School GPA Calculator</title>
     <link rel="stylesheet" href="style.css" />
+    <!-- use calculator image as favicon/logo -->
+    <link rel="icon" href="images/pngtree-sleek-calculator-design-for-everyday-use-vector-png-image_15431765.png" type="image/png" />
 </head>
+
 <body>
     <div class="container">
         <h1>High School GPA Calculator</h1>
         <div class="mode-switch">
             <label><input type="checkbox" id="dark-toggle" aria-label="Toggle dark mode" /> Dark mode</label>
         </div>
+        <!-- <img src = "images/pngtree-sleek-calculator-design-for-everyday-use-vector-png-image_15431765.png" alt="Calculator illustration" class="calculator-image" /> -->
         <div class="semester-select">
             <label for="semester">Semester/Year</label>
             <select id="semester"></select>
@@ -42,6 +46,8 @@
             <div class="buttons">
                 <button type="button" id="add-class" aria-label="Add class entry">Add Class</button>
                 <button type="button" id="clear-all" aria-label="Clear all classes">Clear All</button>
+                <button type="button" id="undo" aria-label="Undo last change" disabled>Undo</button>
+                <button type="button" id="redo" aria-label="Redo change" disabled>Redo</button>
             </div>
         </form>
 
