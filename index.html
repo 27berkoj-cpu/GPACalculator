@@ -20,19 +20,20 @@
             <label for="semester">Semester/Year</label>
             <select id="semester"></select>
             <button type="button" id="new-semester">New</button>
+            <button type="button" id="delete-semester">Delete</button>
         </div>
         <form id="class-form">
             <div class="form-row">
                 <label for="classname">Class Name</label>
-                <input type="text" id="classname" required />
+                <input type="text" id="classname" required placeholder="e.g. Biology" />
             </div>
             <div class="form-row">
                 <label for="grade">Grade (percentage)</label>
-                <input type="number" step="0.01" id="grade" min="0" max="100" required />
+                <input type="number" step="0.01" id="grade" min="0" max="100" required placeholder="0-100" />
             </div>
             <div class="form-row">
                 <label for="credit">Credits</label>
-                <input type="number" step="0.25" id="credit" required />
+                <input type="number" step="0.25" id="credit" min="0.25" required placeholder="Credit hours" />
             </div>
             <div class="form-row">
                 <label for="type">Course Type</label>
@@ -44,7 +45,7 @@
                 </select>
             </div>
             <div class="buttons">
-                <button type="button" id="add-class" aria-label="Add class entry">Add Class</button>
+                <button type="submit" id="add-class" aria-label="Add class entry">Add Class</button>
                 <button type="button" id="clear-all" aria-label="Clear all classes">Clear All</button>
             </div>
         </form>
@@ -67,10 +68,12 @@
 
         <div class="result">
             <button id="calculate" disabled aria-label="Calculate GPA">Calculate GPA</button>
-
             <button id="sample-btn" type="button" aria-label="Show sample classes">Show Sample</button>
-            <p id="gpa-output"></p>
-            <p id="unweighted-output"></p>
+            <div class="summary">
+                <p id="summary-output" aria-live="polite"></p>
+            </div>
+            <p id="gpa-output" aria-live="polite"></p>
+            <p id="unweighted-output" aria-live="polite"></p>
             <div id="scale-info">
                 <h3>Conversion tables</h3>
                 <pre id="percentage-to-letter"></pre>

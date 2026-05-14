@@ -51,15 +51,21 @@ h1 {
 }
 .semester-select {
     display: flex;
+    flex-wrap: wrap;
     gap: 0.5rem;
     align-items: center;
     margin-bottom: 1rem;
 }
 .semester-select select {
     flex: 1;
+    min-width: 140px;
     padding: 0.4rem;
     font-size: 1rem;
-}.form-row {
+}
+.semester-select button {
+    flex: 0 0 auto;
+}
+.form-row {
     display: flex;
     flex-direction: column;
     margin-bottom: 0.75rem;
@@ -96,9 +102,18 @@ button {
     font-size: 1rem;
     border-radius: 6px;
     cursor: pointer;
+    transition: background 0.2s ease, transform 0.1s ease;
 }
-button:hover {
+button:hover:not(:disabled) {
     background: var(--button-hover);
+}
+button:disabled {
+    opacity: 0.54;
+    cursor: not-allowed;
+}
+button:focus-visible {
+    outline: 3px solid rgba(0, 123, 255, 0.6);
+    outline-offset: 2px;
 }
 #class-table {
     width: 100%;
@@ -123,6 +138,17 @@ body.dark #class-table td {
 }
 #class-table tr.lowest {
     background: #f8d7da;
+}
+#class-table tbody tr:hover {
+    background: rgba(0,0,0,0.04);
+}
+.summary {
+    margin: 0.75rem 0;
+    font-size: 0.98rem;
+    color: #333;
+}
+body.dark .summary {
+    color: #ddd;
 }
 .result {
     text-align: center;

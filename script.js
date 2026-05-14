@@ -10,6 +10,14 @@ let sampleActive = false;
 let sampleBackup = null;
 let sampleIndex = 0; // which fixed sample to show next
 
+// cached DOM references used throughout the app
+let semesterSelect = null;
+let calculateButton = null;
+let deleteSemesterButton = null;
+let sampleButton = null;
+let summaryOutput = null;
+let classTableBody = null;
+let classForm = null;
 
 // save semesters object and dark mode to localStorage
 function saveState() {
@@ -94,6 +102,16 @@ function pointsFor(letter, type) {
     return table[letter] ?? 0;
 }
 
+// display a quick semester summary for the current class list
+function updateSummary() {
+    if (!summaryOutput) return;
+
+    const totalClasses = classes.length;
+    const totalCredits = classes.reduce((sum, item) => sum + item.credit, 0);
+    summaryOutput.textContent = totalClasses === 0
+        ? 'No classes added yet.'
+        : `Classes: ${totalClasses} · Total credits: ${totalCredits.toFixed(2)}`;
+}
 
 // generate a sample set containing each course type exactly once
 // fixed sample sets (each set contains one of each course type)
@@ -159,11 +177,19 @@ function toggleSample() {
 
 // refresh the table UI from the classes array
 function updateTable() {
-    const tbody = document.querySelector('#class-table tbody');
-    tbody.innerHTML = '';
-    if (classes.length === 0) return;
+    const tbody = classTableBody || document.querySelector('#class-table tbody');
+    if (!tbody) return;
 
-    // compute highest/lowest based on points (scale) for highlighting
+    tbody.innerHTML = '';
+    if (classes.length === 0) {
+        updateCalculateButton();
+        updateSummary();
+        document.getElementById('gpa-output').textContent = '';
+        document.getElementById('unweighted-output').textContent = '';
+        return;
+    }
+
+    // compute highest/lowest based on weighted point values for table highlighting
     let max = -Infinity, min = Infinity;
     classes.forEach(c => {
         const val = c.points;
@@ -188,14 +214,9 @@ function updateTable() {
         `;
         tbody.appendChild(tr);
     });
-    // attach click handlers to delete buttons (delegation could also work)
-    tbody.querySelectorAll('.delete-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const idx = parseInt(btn.getAttribute('data-index'), 10);
-            removeClass(idx);
-        });
-    });
+
     updateCalculateButton();
+    updateSummary();
 }
 
 function addClass() {
@@ -205,10 +226,25 @@ function addClass() {
     const creditInput = document.getElementById('credit');
     const type = document.getElementById('type').value;
 
+    const name = nameInput.value.trim();
     const pct = parseFloat(gradeInput.value);
     const credit = parseFloat(creditInput.value);
-    if (isNaN(pct) || isNaN(credit) || credit <= 0) {
-        alert('Please enter valid percentage and credits.');
+
+    if (!name) {
+        alert('Please enter a class name.');
+        nameInput.focus();
+        return;
+    }
+
+    if (isNaN(pct) || pct < 0 || pct > 100) {
+        alert('Please enter a valid percentage between 0 and 100.');
+        gradeInput.focus();
+        return;
+    }
+
+    if (isNaN(credit) || credit <= 0) {
+        alert('Please enter a valid non-zero credit amount.');
+        creditInput.focus();
         return;
     }
 
@@ -216,7 +252,7 @@ function addClass() {
     const pts = pointsFor(letter, type);
 
     classes.push({
-        name: nameInput.value.trim() || '(unnamed)',
+        name: name,
         percent: pct,
         letter: letter,
         points: pts,
@@ -339,32 +375,57 @@ function clearAll() {
 
 // semester helpers
 function populateSemesterList() {
-    const sel = document.getElementById('semester');
-    sel.innerHTML = '';
+    if (!semesterSelect) return;
+    semesterSelect.innerHTML = '';
     Object.keys(semesters).forEach(name => {
         const opt = document.createElement('option');
         opt.value = name;
         opt.textContent = name;
-        sel.appendChild(opt);
+        semesterSelect.appendChild(opt);
     });
-    sel.value = currentSemester;
+    semesterSelect.value = currentSemester || semesterSelect.options[0]?.value || '';
+    if (!semesterSelect.value && semesterSelect.options.length > 0) {
+        semesterSelect.selectedIndex = 0;
+        currentSemester = semesterSelect.value;
+    }
+    if (deleteSemesterButton) {
+        deleteSemesterButton.disabled = Object.keys(semesters).length <= 1;
+    }
 }
 
 function switchSemester() {
-    const sel = document.getElementById('semester');
-    currentSemester = sel.value;
+    if (!semesterSelect) return;
+    currentSemester = semesterSelect.value;
     loadCurrentSemester();
 }
 
 function createSemester() {
-    const name = prompt('Enter new semester/year name:');
-    if (name && !semesters[name]) {
-        semesters[name] = [];
-        currentSemester = name;
-        populateSemesterList();
-        saveState();
-        loadCurrentSemester();
+    const name = prompt('Enter new semester/year name:')?.trim();
+    if (!name) return;
+    if (semesters[name]) {
+        alert('A semester with that name already exists.');
+        return;
     }
+    semesters[name] = [];
+    currentSemester = name;
+    populateSemesterList();
+    saveState();
+    loadCurrentSemester();
+}
+
+function deleteSemester() {
+    if (!currentSemester || Object.keys(semesters).length <= 1) {
+        alert('At least one semester must remain.');
+        return;
+    }
+    if (!confirm(`Delete semester "${currentSemester}"? This cannot be undone.`)) {
+        return;
+    }
+    delete semesters[currentSemester];
+    currentSemester = Object.keys(semesters)[0];
+    populateSemesterList();
+    saveState();
+    loadCurrentSemester();
 }
 
 function loadCurrentSemester() {
@@ -376,45 +437,71 @@ function loadCurrentSemester() {
     updateTable();
 }
 
+function handleTableClick(event) {
+    const button = event.target.closest('.delete-btn');
+    if (!button) return;
+    const idx = parseInt(button.getAttribute('data-index'), 10);
+    if (!Number.isNaN(idx)) {
+        removeClass(idx);
+    }
+}
+
 // assign listeners and restore previous state
 function init() {
-    document.getElementById('add-class').addEventListener('click', addClass);
-    document.getElementById('calculate').addEventListener('click', calculateGPA);
+    classForm = document.getElementById('class-form');
+    semesterSelect = document.getElementById('semester');
+    calculateButton = document.getElementById('calculate');
+    sampleButton = document.getElementById('sample-btn');
+    deleteSemesterButton = document.getElementById('delete-semester');
+    summaryOutput = document.getElementById('summary-output');
+    classTableBody = document.querySelector('#class-table tbody');
+
+    if (classForm) {
+        classForm.addEventListener('submit', (event) => {
+            event.preventDefault();
+            addClass();
+        });
+    }
+
+    if (calculateButton) calculateButton.addEventListener('click', calculateGPA);
     document.getElementById('clear-all').addEventListener('click', clearAll);
 
     // semester controls
-    document.getElementById('semester').addEventListener('change', switchSemester);
+    if (semesterSelect) semesterSelect.addEventListener('change', switchSemester);
     document.getElementById('new-semester').addEventListener('click', createSemester);
+    if (deleteSemesterButton) deleteSemesterButton.addEventListener('click', deleteSemester);
+
     // sample preview control
-    const sampleBtn = document.getElementById('sample-btn');
-    if (sampleBtn) sampleBtn.addEventListener('click', toggleSample);
+    if (sampleButton) sampleButton.addEventListener('click', toggleSample);
 
     // dark mode toggle logic
-    const toggle = document.getElementById('dark-toggle');
-    toggle.addEventListener('change', () => {
-        document.body.classList.toggle('dark', toggle.checked);
-        saveState();
-    });
+    darkToggle = document.getElementById('dark-toggle');
+    if (darkToggle) {
+        darkToggle.addEventListener('change', () => {
+            document.body.classList.toggle('dark', darkToggle.checked);
+            saveState();
+        });
+    }
+
+    if (classTableBody) {
+        classTableBody.addEventListener('click', handleTableClick);
+    }
 
     // load saved semesters and theme
     loadState();
-    // if none exist, create default then populate the selector
     if (Object.keys(semesters).length === 0) {
         semesters['Default'] = [];
     }
     populateSemesterList();
-    // select first semester
     currentSemester = Object.keys(semesters)[0];
     loadCurrentSemester();
 
-    // if no preference stored, honor system setting
-    if (!localStorage.getItem('gpa_dark')) {
+    if (!localStorage.getItem('gpa_dark') && darkToggle) {
         const prefers = window.matchMedia('(prefers-color-scheme: dark)').matches;
         document.body.classList.toggle('dark', prefers);
-        toggle.checked = prefers;
+        darkToggle.checked = prefers;
     }
 
-    // fill in conversion info tables
     populateScaleInfo();
 }
 
