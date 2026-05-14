@@ -10,12 +10,14 @@
 </head>
 
 <body>
+    <!-- Main app container -->
     <div class="container">
         <h1>High School GPA Calculator</h1>
         <div class="mode-switch">
             <label><input type="checkbox" id="dark-toggle" aria-label="Toggle dark mode" /> Dark mode</label>
         </div>
         <!-- <img src = "images/pngtree-sleek-calculator-design-for-everyday-use-vector-png-image_15431765.png" alt="Calculator illustration" class="calculator-image" /> -->
+        <!-- Semester/year selector and controls -->
         <div class="semester-select">
             <label for="semester">Semester/Year</label>
             <select id="semester"></select>
@@ -66,6 +68,7 @@
             <tbody></tbody>
         </table>
 
+        <!-- Output section for GPA results and conversion info -->
         <div class="result">
             <button id="calculate" disabled aria-label="Calculate GPA">Calculate GPA</button>
             <button id="sample-btn" type="button" aria-label="Show sample classes">Show Sample</button>

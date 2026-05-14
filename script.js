@@ -1,16 +1,17 @@
-// manage current semester classes array
+// The app stores the current class list and multiple semester records.
+// Each semester is a key in `semesters`, with an array of class entries.
 const classes = [];
 let currentSemester = null;
 
-// internal storage object: { semesterName: [class,...], ... }
+// Internal app storage: { semesterName: [classEntry, ...], ... }
 let semesters = {};
 
-// sample preview state (not persisted into semesters)
+// Sample preview state: shows example data without persisting it as a real semester.
 let sampleActive = false;
 let sampleBackup = null;
-let sampleIndex = 0; // which fixed sample to show next
+let sampleIndex = 0; // which fixed sample set is currently available
 
-// cached DOM references used throughout the app
+// Cached DOM references used throughout the app for better performance.
 let semesterSelect = null;
 let calculateButton = null;
 let deleteSemesterButton = null;
@@ -18,15 +19,18 @@ let sampleButton = null;
 let summaryOutput = null;
 let classTableBody = null;
 let classForm = null;
+let darkToggle = null;
+let gpaOutput = null;
+let unwOutput = null;
 
-// save semesters object and dark mode to localStorage
+// Save semester data and dark mode preference to localStorage.
 function saveState() {
     localStorage.setItem('gpa_semesters', JSON.stringify(semesters));
     const dark = document.body.classList.contains('dark');
     localStorage.setItem('gpa_dark', dark ? '1' : '0');
 }
 
-// load state from localStorage and apply
+// Load previously saved settings from localStorage.
 function loadState() {
     const stored = localStorage.getItem('gpa_semesters');
     if (stored) {
@@ -298,10 +302,8 @@ function calculateGPA() {
     }
     const gpa = totalPoints / totalCredits;
     const gpaUnw = totalPointsUnw / totalCredits;
-    const out = document.getElementById('gpa-output');
-    const outUnw = document.getElementById('unweighted-output');
-    out.textContent = `Weighted GPA: ${gpa.toFixed(3)}`;
-    outUnw.textContent = `Unweighted GPA: ${gpaUnw.toFixed(3)}`;
+    if (gpaOutput) gpaOutput.textContent = `Weighted GPA: ${gpa.toFixed(3)}`;
+    if (unwOutput) unwOutput.textContent = `Unweighted GPA: ${gpaUnw.toFixed(3)}`;
 
     // if three or more classes, apply special styling for readability
     const resDiv = document.querySelector('.result');
@@ -316,12 +318,12 @@ function calculateGPA() {
 function removeClass(index) {
     if (index >= 0 && index < classes.length) {
         classes.splice(index, 1);
-        // persist the updated classes array to the current semester
+        // Persist the updated classes array to the current semester.
         if (currentSemester) semesters[currentSemester] = classes.slice();
         saveState();
         updateTable();
-        document.getElementById('gpa-output').textContent = '';
-        document.getElementById('unweighted-output').textContent = '';
+        if (gpaOutput) gpaOutput.textContent = '';
+        if (unwOutput) unwOutput.textContent = '';
     }
 }
 
@@ -344,10 +346,11 @@ function populateScaleInfo() {
 
 
 
-// enable/disable calculate button based on data presence
+// Enable or disable the Calculate button depending on whether any classes exist.
 function updateCalculateButton() {
-    const btn = document.getElementById('calculate');
-    btn.disabled = classes.length === 0;
+    if (!calculateButton) calculateButton = document.getElementById('calculate');
+    if (!calculateButton) return;
+    calculateButton.disabled = classes.length === 0;
 }
 
 
@@ -365,10 +368,8 @@ function clearAll() {
 
     classes.length = 0;
     if (currentSemester) semesters[currentSemester] = [];
-    const gpaOut = document.getElementById('gpa-output');
-    const unwOut = document.getElementById('unweighted-output');
-    if (gpaOut) gpaOut.textContent = '';
-    if (unwOut) unwOut.textContent = '';
+    if (gpaOutput) gpaOutput.textContent = '';
+    if (unwOutput) unwOutput.textContent = '';
     saveState();
     updateTable();
 }
@@ -455,6 +456,9 @@ function init() {
     deleteSemesterButton = document.getElementById('delete-semester');
     summaryOutput = document.getElementById('summary-output');
     classTableBody = document.querySelector('#class-table tbody');
+    darkToggle = document.getElementById('dark-toggle');
+    gpaOutput = document.getElementById('gpa-output');
+    unwOutput = document.getElementById('unweighted-output');
 
     if (classForm) {
         classForm.addEventListener('submit', (event) => {
@@ -475,7 +479,6 @@ function init() {
     if (sampleButton) sampleButton.addEventListener('click', toggleSample);
 
     // dark mode toggle logic
-    darkToggle = document.getElementById('dark-toggle');
     if (darkToggle) {
         darkToggle.addEventListener('change', () => {
             document.body.classList.toggle('dark', darkToggle.checked);
