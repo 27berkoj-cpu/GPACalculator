@@ -81,6 +81,24 @@ h1 {
     border: 1px solid #ccc;
     border-radius: 4px;
 }
+/* make select controls match inputs and sit cleanly in the form */
+.form-row select {
+    width: 100%;
+    padding: 0.5rem;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: var(--container-bg) no-repeat right 0.75rem center;
+    appearance: none;
+    -webkit-appearance: none;
+    color: var(--text-color);
+    box-sizing: border-box;
+}
+body.dark .form-row select {
+    border-color: #555;
+    background: var(--container-bg) no-repeat right 0.75rem center;
+    color: var(--text-color);
+}
 .radio-group {
     flex-direction: row;
     align-items: center;
@@ -120,12 +138,21 @@ button:focus-visible {
     width: 100%;
     border-collapse: collapse;
     margin-bottom: 1rem;
+    background: #000;
+    color: #fff;
 }
 #class-table th,
 #class-table td {
-    border: 1px solid #ddd;
+    border: 1px solid #444;
     padding: 0.5rem;
     text-align: center;
+    color: #fff;
+}
+#class-table th {
+    background: #111;
+}
+#class-table tbody tr:nth-child(even) {
+    background: #080808;
 }
 
 /* ensure legible text in dark theme for table headers and cells */
@@ -134,14 +161,65 @@ body.dark #class-table td {
     color: var(--text-color);
     border-color: #555;
 }
-#class-table tr.highest {
-    background: #d4edda;
-}
+#class-table tr.highest,
 #class-table tr.lowest {
-    background: #f8d7da;
+    background: transparent;
 }
 #class-table tbody tr:hover {
-    background: rgba(0,0,0,0.04);
+    background: rgba(255,255,255,0.08);
+}
+
+/* Styled action buttons in the class table */
+#class-table button.edit-btn,
+#class-table button.delete-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 4px 8px;
+    min-width: 34px;
+    height: 28px;
+    border-radius: 8px;
+    border: none;
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.2);
+    transition: transform 0.08s ease, filter 0.12s ease;
+}
+#class-table td button + button { margin-left: 8px; }
+
+/* align and space the action buttons cleanly inside the last table cell */
+#class-table td:last-child {
+    display: flex;
+    gap: 14px; /* larger gap so buttons are clearly separated */
+    justify-content: center;
+    align-items: center;
+}
+
+/* ensure buttons inside cells keep their sizing while aligned */
+#class-table td:last-child button {
+    margin: 0; /* reset any inline margins */
+}
+#class-table button.edit-btn {
+    background: linear-gradient(180deg, #06b6d4, #0891b2); /* teal */
+}
+#class-table button.delete-btn {
+    background: linear-gradient(180deg, #ef4444, #dc2626); /* red */
+}
+#class-table button.edit-btn:hover,
+#class-table button.delete-btn:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.05);
+}
+#class-table button.edit-btn:active,
+#class-table button.delete-btn:active {
+    transform: translateY(0);
+}
+#class-table button:focus-visible {
+    outline: 3px solid rgba(255,255,255,0.12);
+    outline-offset: 2px;
 }
 .summary {
     margin: 0.75rem 0;

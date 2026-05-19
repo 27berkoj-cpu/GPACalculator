@@ -35,19 +35,20 @@
             </div>
             <div class="form-row">
                 <label for="credit">Credits</label>
-                <input type="number" step="0.25" id="credit" min="0.25" required placeholder="Credit hours" />
+                <input type="number" step="0.01" id="credit" min="0.01" required placeholder="e.g. 1.00" />
             </div>
             <div class="form-row">
                 <label for="type">Course Type</label>
                 <select id="type">
                     <option value="regular">Regular</option>
-                    <option value="honors">Honors/IB SL</option>
-                    <option value="ap">AP/IB HL</option>
+                    <option value="honors">Honors/IB SL (Standard Level)</option>
+                    <option value="ap">AP/IB HL (Higher Level)</option>
                     <option value="ccp">CCP (College Credit Plus / Dual Enrollment)</option>
                 </select>
             </div>
             <div class="buttons">
                 <button type="submit" id="add-class" aria-label="Add class entry">Add Class</button>
+                <button type="button" id="cancel-edit" aria-label="Cancel edit" style="display:none;">Cancel Edit</button>
                 <button type="button" id="clear-all" aria-label="Clear all classes">Clear All</button>
             </div>
         </form>
@@ -55,14 +56,13 @@
         <table id="class-table" aria-label="List of entered classes">
             <thead>
                 <tr>
-                    <th>#</th>
                     <th>Class</th>
                     <th>Grade (%)</th>
                     <th>Letter</th>
                     <th>Points</th>
                     <th>Credits</th>
                     <th>Type</th>
-                    <th>Delete</th>
+                    <th>Edit/Delete</th>
                 </tr>
             </thead>
             <tbody></tbody>

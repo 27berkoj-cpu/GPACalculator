@@ -44,3 +44,10 @@ To preview changes, open `index.html` in the browser or use a local development 
 - No backend service is required.
 
 Feel free to extend this tracker with additional export/import or custom grade scales.
+
+## Recent UI updates
+
+- Edit and Delete controls in the class table were restyled and center-aligned for clearer spacing and better accessibility.
+- Buttons are spaced further apart to avoid touching; hover and focus states improve discoverability.
+- The class form now accepts credit values with two-decimal precision (for example `0.33` and `0.67`).
+- New entries are added to the top of the class list so the newest classes appear first.

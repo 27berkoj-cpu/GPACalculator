@@ -3,6 +3,9 @@
 const classes = [];
 let currentSemester = null;
 
+// index of class being edited; -1 when not editing
+let editingIndex = -1;
+
 // Internal app storage: { semesterName: [classEntry, ...], ... }
 let semesters = {};
 
@@ -171,7 +174,7 @@ function toggleSample() {
         sampleBackup = classes.slice();
         const sample = sampleSets[sampleIndex];
         classes.length = 0;
-        sample.forEach(c => classes.push(Object.assign({}, c)));
+        sample.forEach(c => classes.unshift(Object.assign({}, c)));
         sampleActive = true;
         btn.textContent = 'Hide Sample';
         addBtn.disabled = true;
@@ -207,14 +210,16 @@ function updateTable() {
         if (c.points === min) tr.classList.add('lowest');
         const typeLabel = c.type === 'regular' ? 'Regular' : (c.type === 'honors' ? 'Honors' : 'AP/IB/CCP');
         tr.innerHTML = `
-            <td>${idx + 1}</td>
             <td>${c.name}</td>
             <td>${c.percent.toFixed(2)}</td>
             <td>${c.letter}</td>
             <td>${c.points.toFixed(4)}</td>
-            <td>${c.credit}</td>
+            <td>${c.credit.toFixed(2)}</td>
             <td>${typeLabel}</td>
-            <td><button class="delete-btn" aria-label="Delete class ${c.name}" data-index="${idx}">✖</button></td>
+            <td>
+                <button class="edit-btn" aria-label="Edit class ${c.name}" data-index="${idx}">✎</button>
+                <button class="delete-btn" aria-label="Delete class ${c.name}" data-index="${idx}">✖</button>
+            </td>
         `;
         tbody.appendChild(tr);
     });
@@ -232,7 +237,7 @@ function addClass() {
 
     const name = nameInput.value.trim();
     const pct = parseFloat(gradeInput.value);
-    const credit = parseFloat(creditInput.value);
+    let credit = parseFloat(creditInput.value);
 
     if (!name) {
         alert('Please enter a class name.');
@@ -252,17 +257,34 @@ function addClass() {
         return;
     }
 
+    // normalize credit to two decimal places (supports .33 and .67)
+    credit = Math.round(credit * 100) / 100;
+
     const letter = letterFromPercent(pct);
     const pts = pointsFor(letter, type);
 
-    classes.push({
+    const entry = {
         name: name,
         percent: pct,
         letter: letter,
         points: pts,
         credit: credit,
         type: type
-    });
+    };
+
+    if (editingIndex >= 0 && editingIndex < classes.length) {
+        // save edited entry in-place
+        classes[editingIndex] = entry;
+        editingIndex = -1;
+        const addBtn = document.getElementById('add-class');
+        if (addBtn) addBtn.textContent = 'Add Class';
+        const cancelBtn = document.getElementById('cancel-edit');
+        if (cancelBtn) cancelBtn.style.display = 'none';
+    } else {
+        // add newest classes at the top
+        classes.unshift(entry);
+    }
+
     semesters[currentSemester] = classes.slice();
     saveState();
 
@@ -272,6 +294,33 @@ function addClass() {
     document.getElementById('classname').focus();
 
     updateTable();
+}
+
+function startEdit(index) {
+    if (index < 0 || index >= classes.length) return;
+    const c = classes[index];
+    document.getElementById('classname').value = c.name;
+    document.getElementById('grade').value = c.percent;
+    document.getElementById('credit').value = c.credit;
+    document.getElementById('type').value = c.type;
+    editingIndex = index;
+    const addBtn = document.getElementById('add-class');
+    if (addBtn) addBtn.textContent = 'Save';
+    const cancelBtn = document.getElementById('cancel-edit');
+    if (cancelBtn) cancelBtn.style.display = '';
+    document.getElementById('classname').focus();
+}
+
+function cancelEdit() {
+    editingIndex = -1;
+    const addBtn = document.getElementById('add-class');
+    if (addBtn) addBtn.textContent = 'Add Class';
+    const cancelBtn = document.getElementById('cancel-edit');
+    if (cancelBtn) cancelBtn.style.display = 'none';
+    // clear fields
+    document.getElementById('classname').value = '';
+    document.getElementById('grade').value = '';
+    document.getElementById('credit').value = '';
 }
 
 
@@ -439,11 +488,17 @@ function loadCurrentSemester() {
 }
 
 function handleTableClick(event) {
-    const button = event.target.closest('.delete-btn');
-    if (!button) return;
-    const idx = parseInt(button.getAttribute('data-index'), 10);
-    if (!Number.isNaN(idx)) {
-        removeClass(idx);
+    const deleteBtn = event.target.closest('.delete-btn');
+    if (deleteBtn) {
+        const idx = parseInt(deleteBtn.getAttribute('data-index'), 10);
+        if (!Number.isNaN(idx)) removeClass(idx);
+        return;
+    }
+    const editBtn = event.target.closest('.edit-btn');
+    if (editBtn) {
+        const idx = parseInt(editBtn.getAttribute('data-index'), 10);
+        if (!Number.isNaN(idx)) startEdit(idx);
+        return;
     }
 }
 
@@ -466,6 +521,9 @@ function init() {
             addClass();
         });
     }
+
+    const cancelEditBtn = document.getElementById('cancel-edit');
+    if (cancelEditBtn) cancelEditBtn.addEventListener('click', cancelEdit);
 
     if (calculateButton) calculateButton.addEventListener('click', calculateGPA);
     document.getElementById('clear-all').addEventListener('click', clearAll);
