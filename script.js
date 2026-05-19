@@ -57,17 +57,17 @@ function loadState() {
 // helper: map percentage to letter grade
 // boundaries follow typical high-school percentages
 function letterFromPercent(pct) {
-    if (pct >= 97) return 'A+';
-    if (pct >= 93) return 'A';
+    if (pct >= 98) return 'A+';
+    if (pct >= 92) return 'A';
     if (pct >= 90) return 'A-';
-    if (pct >= 87) return 'B+';
-    if (pct >= 83) return 'B';
+    if (pct >= 88) return 'B+';
+    if (pct >= 82) return 'B';
     if (pct >= 80) return 'B-';
-    if (pct >= 77) return 'C+';
-    if (pct >= 73) return 'C';
+    if (pct >= 78) return 'C+';
+    if (pct >= 72) return 'C';
     if (pct >= 70) return 'C-';
-    if (pct >= 67) return 'D+';
-    if (pct >= 63) return 'D';
+    if (pct >= 68) return 'D+';
+    if (pct >= 62) return 'D';
     if (pct >= 60) return 'D-';
     return 'F';
 }
@@ -134,7 +134,7 @@ const sampleSets = [
     ],
     // Additional fixed six-course examples (non-random)
     [
-        { name: 'Algebra I', percent: 92, letter: 'A-', points: pointsFor('A-', 'regular'), credit: 1, type: 'regular' },
+        { name: 'Algebra I', percent: 92, letter: 'A', points: pointsFor('A', 'regular'), credit: 1, type: 'regular' },
         { name: 'Honors Chemistry', percent: 88, letter: 'B+', points: pointsFor('B+', 'honors'), credit: 1, type: 'honors' },
         { name: 'AP Biology', percent: 94, letter: 'A', points: pointsFor('A', 'ap'), credit: 1, type: 'ap' },
         { name: 'CCP College Writing', percent: 90, letter: 'A-', points: pointsFor('A-', 'ccp'), credit: 1, type: 'ccp' },
@@ -144,7 +144,7 @@ const sampleSets = [
     [
         { name: 'English 9', percent: 85, letter: 'B', points: pointsFor('B', 'regular'), credit: 1, type: 'regular' },
         { name: 'Honors World History', percent: 91, letter: 'A-', points: pointsFor('A-', 'honors'), credit: 1, type: 'honors' },
-        { name: 'AP Calculus', percent: 96, letter: 'A+', points: pointsFor('A+', 'ap'), credit: 1, type: 'ap' },
+        { name: 'AP Calculus', percent: 96, letter: 'A', points: pointsFor('A', 'ap'), credit: 1, type: 'ap' },
         { name: 'CCP Intro to Psychology', percent: 89, letter: 'B+', points: pointsFor('B+', 'ccp'), credit: 1, type: 'ccp' },
         { name: 'Geometry', percent: 78, letter: 'C+', points: pointsFor('C+', 'regular'), credit: 1, type: 'regular' },
         { name: 'PE Fitness', percent: 93, letter: 'A', points: pointsFor('A', 'regular'), credit: 0.5, type: 'regular' }
@@ -382,11 +382,11 @@ function populateScaleInfo() {
 
     // generate percentage to letter mapping text
     const ranges = [
-        ['A+', 97, 100], ['A', 93, 96.99], ['A-', 90, 92.99],
-        ['B+', 87, 89.99], ['B', 83, 86.99], ['B-', 80, 82.99],
-        ['C+', 77, 79.99], ['C', 73, 76.99], ['C-', 70, 72.99],
-        ['D+', 67, 69.99], ['D', 63, 66.99], ['D-', 60, 62.99],
-        ['F', 0, 59.99]
+        ['A+', 98, 100], ['A', 92, 97], ['A-', 90, 91],
+        ['B+', 88, 89], ['B', 82, 87], ['B-', 80, 81],
+        ['C+', 78, 79], ['C', 72, 77], ['C-', 70, 71],
+        ['D+', 68, 69], ['D', 62, 67], ['D-', 60, 61],
+        ['F', 0, 59]
     ];
     pctEl.textContent = ranges.map(r => `${r[0]} = ${r[1]}‑${r[2]}%`).join('\n');
 
