@@ -115,9 +115,7 @@ function updateSummary() {
 
     const totalClasses = classes.length;
     const totalCredits = classes.reduce((sum, item) => sum + item.credit, 0);
-    summaryOutput.textContent = totalClasses === 0
-        ? 'No classes added yet.'
-        : `Classes: ${totalClasses} · Total credits: ${totalCredits.toFixed(2)}`;
+    
 }
 
 // generate a sample set containing each course type exactly once
